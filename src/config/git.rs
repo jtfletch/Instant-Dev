@@ -2,7 +2,7 @@ use open;
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::{self, Write};
-use std::process::{exit, Command};
+use std::process::{exit, Command, Stdio};
 
 fn check_git() -> bool {
     let output = Command::new("ssh")
@@ -111,15 +111,31 @@ fn start_ssh_agent() -> io::Result<()> {
 }
 
 fn generate_ssh_key(email: &str) {
-    let ssh_keygen_command = Command::new("ssh-keygen")
-        .arg("-t ed25519")
+    let mut ssh_keygen_command = Command::new("ssh-keygen")
+        .arg("-t")
+        .arg("ed25519")
         .arg("-C")
         .arg(email)
-        .output()
-        .expect("Failed to generate SSH key");
+        .arg("-N")
+        .arg("")
+        .stdin(Stdio::piped()) // Enable stdin
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("Failed to start ssh-keygen process");
 
-    if !ssh_keygen_command.status.success() {
-        eprintln!("Error generating SSH key: {:?}", ssh_keygen_command.stderr);
+    // Feed input to the stdin of ssh-keygen
+    if let Some(mut stdin) = ssh_keygen_command.stdin.take() {
+        stdin.write_all(b"\n").expect("Failed to write Enter");
+        stdin.write_all(b"\n").expect("Failed to write Enter");
+    }
+
+    let output = ssh_keygen_command
+        .wait_with_output()
+        .expect("Failed to wait for ssh-keygen process");
+
+    if !output.status.success() {
+        eprintln!("Error generating SSH key: {:?}", output.stderr);
         return;
     }
 
