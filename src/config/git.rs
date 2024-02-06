@@ -53,7 +53,15 @@ fn open_github() {
     let path = "https://github.com/settings/keys";
 
     match open::that(path) {
-        Ok(()) => println!("Opened '{}' successfully.", path),
+        Ok(()) => {
+            println!("Opened '{}' successfully.", path);
+            // Prompt the user to press Enter
+            println!("Press Enter after adding SSH key on the GitHub website.");
+            let mut input = String::new();
+            io::stdin()
+                .read_line(&mut input)
+                .expect("Failed to read line");
+        }
         Err(err) => eprintln!("An error occurred when opening '{}': {}", path, err),
     }
 }
@@ -208,5 +216,11 @@ pub fn configure_git(verbose: bool) {
             Err(err) => eprintln!("Error configuring git: {}", err),
         }
         configure_ssh(email, verbose);
+
+        if check_git() {
+            println!("GitHub access configured successfully.");
+        } else {
+            eprintln!("Error configuring GitHub access.");
+        }
     }
 }
