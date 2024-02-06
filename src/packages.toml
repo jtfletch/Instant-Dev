@@ -1,3 +1,14 @@
 packages = ["rust", "go", "lazygit"]
 
 casks = ["warp"]
+
+lsp = [
+  "rust-analyzer",
+  "lldb-vscode",
+  "gopls",
+  "gofmt",
+  "dlv",
+  "typescript-language-server",
+  "taplo",
+  "prettierd",
+]
