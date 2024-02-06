@@ -7,12 +7,15 @@ pub fn packages() {
         fs::read_to_string("src/packages.toml").expect("Failed to read packages.toml");
     let toml: Value = toml::from_str(&toml_content).expect("Failed to parse TOML");
 
+    let installed_packages = get_installed_packages();
+
     if let Some(packages) = toml.get("packages").and_then(Value::as_array) {
         // Check and install packages
         for package in packages {
             if let Some(package_name) = package.as_str() {
-                if !is_installed(package_name) {
-                    install_package(package_name);
+                let package_name = package_name.to_string();
+                if !installed_packages.contains(&package_name) {
+                    install_package(&package_name);
                 } else {
                     println!("{} is already installed.", package_name);
                 }
@@ -22,29 +25,57 @@ pub fn packages() {
         eprintln!("Invalid or missing 'packages' array in packages.toml");
     }
 
+    let installed_casks = get_installed_casks();
+
     if let Some(casks) = toml.get("casks").and_then(Value::as_array) {
-        // check and install casks
+        // Check and install casks
         for cask in casks {
             if let Some(cask_name) = cask.as_str() {
-                if !is_installed(cask_name) {
-                    install_cask(cask_name);
+                let cask_name = cask_name.to_string();
+                if !installed_casks.contains(&cask_name) {
+                    install_cask(&cask_name);
                 } else {
                     println!("{} is already installed.", cask_name);
                 }
             }
         }
     } else {
-        eprintln!("Invalid of missing 'casks' array in packages.toml");
+        eprintln!("Invalid or missing 'casks' array in packages.toml");
     }
 }
 
-pub fn is_installed(package: &str) -> bool {
+fn get_installed_packages() -> Vec<String> {
     let output = Command::new("brew")
-        .args(&["list", package])
+        .args(&["list"])
         .output()
-        .expect("Failed to check if package is installed.");
+        .expect("Failed to get list of installed packages.");
 
-    output.status.success()
+    if output.status.success() {
+        String::from_utf8_lossy(&output.stdout)
+            .lines()
+            .map(|line| line.trim().to_string())
+            .collect()
+    } else {
+        eprintln!("Failed to get list of installed packages.");
+        Vec::new()
+    }
+}
+
+fn get_installed_casks() -> Vec<String> {
+    let output = Command::new("brew")
+        .args(&["list", "--cask"])
+        .output()
+        .expect("Failed to get list of installed casks.");
+
+    if output.status.success() {
+        String::from_utf8_lossy(&output.stdout)
+            .lines()
+            .map(|line| line.trim().to_string())
+            .collect()
+    } else {
+        eprintln!("Failed to get list of installed casks.");
+        Vec::new()
+    }
 }
 
 pub fn install_package(package: &str) {
@@ -62,7 +93,7 @@ pub fn install_package(package: &str) {
     }
 }
 
-pub fn install_cask(cask: &str) {
+fn install_cask(cask: &str) {
     println!("Installing {}...", cask);
 
     let output = Command::new("brew")
