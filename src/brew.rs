@@ -18,7 +18,7 @@ fn update_homebrew() -> Result<(), std::io::Error> {
         if update_output.contains("Already up-to-date.") {
             println!("Homebrew is at the latest release version.");
         } else {
-            println!("Homebrew is at the latest version.");
+            println!("Homebrew updated.");
         }
         Ok(())
     } else {

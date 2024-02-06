@@ -5,7 +5,8 @@ mod config {
 mod packages;
 
 fn main() {
+    let verbose = false;
     brew::install_homebrew();
     packages::packages();
-    config::git::configure_git()
+    config::git::configure_git(verbose)
 }

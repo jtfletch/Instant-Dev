@@ -58,7 +58,7 @@ fn open_github() {
     }
 }
 
-fn configure_directory() -> io::Result<()> {
+fn configure_directory(verbose: bool) -> io::Result<()> {
     // Set your SSH key file path
     let ssh_key_file = "~/.ssh/id_ed25519";
 
@@ -87,12 +87,14 @@ fn configure_directory() -> io::Result<()> {
         ssh_key_file
     )?;
 
-    println!("Configuration added to ~/.ssh/config successfully.");
+    if verbose {
+        println!("Configuration added to ~/.ssh/config successfully.");
+    }
 
     Ok(())
 }
 
-fn start_ssh_agent() -> io::Result<()> {
+fn start_ssh_agent(verbose: bool) -> io::Result<()> {
     let ssh_agent_command = Command::new("sh")
         .arg("-c")
         .arg("eval \"$(ssh-agent -s)\"")
@@ -106,11 +108,13 @@ fn start_ssh_agent() -> io::Result<()> {
         ));
     }
 
-    println!("SSH agent started successfully.");
+    if verbose {
+        println!("SSH agent started successfully.")
+    }
     Ok(())
 }
 
-fn generate_ssh_key(email: &str) {
+fn generate_ssh_key(email: &str, verbose: bool) {
     let mut ssh_keygen_command = Command::new("ssh-keygen")
         .arg("-t")
         .arg("ed25519")
@@ -139,10 +143,12 @@ fn generate_ssh_key(email: &str) {
         return;
     }
 
-    println!("SSH key generated successfully.");
+    if verbose {
+        println!("SSH key generated successfully.");
+    }
 }
 
-fn copy_public_key() {
+fn copy_public_key(verbose: bool) {
     let pbcopy_command = Command::new("sh")
         .arg("-c")
         .arg("pbcopy < ~/.ssh/id_ed25519.pub")
@@ -151,7 +157,9 @@ fn copy_public_key() {
     match pbcopy_command {
         Ok(output) => {
             if output.status.success() {
-                println!("Public key copied to clipboard successfully.");
+                if verbose {
+                    println!("Public key copied to clipboard successfully.");
+                }
             } else {
                 eprintln!("Error copying public key to clipboard: {:?}", output.stderr);
                 exit(1);
@@ -164,18 +172,20 @@ fn copy_public_key() {
     }
 }
 
-fn configure_ssh(email: &str) {
-    generate_ssh_key(email);
-    if let Err(error) = start_ssh_agent() {
+fn configure_ssh(email: &str, verbose: bool) {
+    generate_ssh_key(email, verbose);
+    if let Err(error) = start_ssh_agent(verbose) {
         eprintln!("Error starting SSH agent: {}", error);
         // Handle the error as needed, e.g., return, panic, etc.
-    } else if let Err(error) = configure_directory() {
+    } else if let Err(error) = configure_directory(verbose) {
         eprintln!("Error configuring directory: {}", error);
         // Handle the error as needed, e.g., return, panic, etc.
     } else {
-        println!("SSH configuration generated successfully.");
+        if verbose {
+            println!("SSH configuration generated successfully.");
+        }
     }
-    copy_public_key();
+    copy_public_key(verbose);
     open_github();
 }
 
@@ -185,7 +195,7 @@ fn set_details(user: &str, email: &str) -> io::Result<()> {
     Ok(())
 }
 
-pub fn configure_git() {
+pub fn configure_git(verbose: bool) {
     let user: &str = "jtfletch";
     let email: &str = "jobetfletcher@gmail.com";
 
@@ -194,9 +204,9 @@ pub fn configure_git() {
     } else {
         println!("Configuring Github access");
         match set_details(user, email) {
-            Ok(_) => println!("Git configuration completed successfully."),
+            Ok(_) => println!("Git details applied successfully."),
             Err(err) => eprintln!("Error configuring git: {}", err),
         }
-        configure_ssh(email);
+        configure_ssh(email, verbose);
     }
 }
