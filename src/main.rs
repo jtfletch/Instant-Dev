@@ -1,3 +1,7 @@
+mod brew;
+mod packages;
+
 fn main() {
-    println!("Hello, world!");
+    brew::install_homebrew();
+    packages::packages();
 }

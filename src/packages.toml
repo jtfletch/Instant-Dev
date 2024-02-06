@@ -1,0 +1,3 @@
+packages = ["rust", "go", "lazygit"]
+
+casks = ["warp"]
