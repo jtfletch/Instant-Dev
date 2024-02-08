@@ -14,6 +14,7 @@ fn run_command_success(command: &str, args: &[&str]) -> bool {
     }
 }
 
+/// Check if SSH authentication to GitHub is successful.
 fn check_git_authentication() -> bool {
     let output = Command::new("ssh")
         .arg("-T")
@@ -46,7 +47,7 @@ fn configure_git_details(config: &str, value: &str) -> io::Result<()> {
     }
 }
 
-/// Open Github website for user to paste in SSH key, wait for return.
+/// Open GitHub website for user to paste in SSH key and wait for return.
 fn open_github() {
     let path = "https://github.com/settings/keys";
 
@@ -64,6 +65,7 @@ fn open_github() {
     }
 }
 
+/// Configure the SSH directory.
 fn configure_directory(verbose: bool) -> io::Result<()> {
     // Set your SSH key file path
     let ssh_key_file = "~/.ssh/id_ed25519";
@@ -100,6 +102,7 @@ fn configure_directory(verbose: bool) -> io::Result<()> {
     Ok(())
 }
 
+/// Start the SSH agent.
 fn start_ssh_agent(verbose: bool) -> io::Result<()> {
     let ssh_agent_command = Command::new("sh")
         .arg("-c")
@@ -120,6 +123,7 @@ fn start_ssh_agent(verbose: bool) -> io::Result<()> {
     Ok(())
 }
 
+/// Generate an SSH key.
 fn generate_ssh_key(email: &str, verbose: bool) {
     let mut ssh_keygen_command = Command::new("ssh-keygen")
         .arg("-t")
@@ -154,6 +158,7 @@ fn generate_ssh_key(email: &str, verbose: bool) {
     }
 }
 
+/// Copy the public key to the clipboard.
 fn copy_public_key(verbose: bool) {
     let pbcopy_command = Command::new("sh")
         .arg("-c")
@@ -178,6 +183,7 @@ fn copy_public_key(verbose: bool) {
     }
 }
 
+/// Configure SSH settings.
 fn configure_ssh(email: &str, verbose: bool) {
     generate_ssh_key(email, verbose);
     if let Err(error) = start_ssh_agent(verbose) {
@@ -195,33 +201,44 @@ fn configure_ssh(email: &str, verbose: bool) {
     open_github();
 }
 
+/// Set Git details like username and email.
 fn set_details(user: &str, email: &str) -> io::Result<()> {
     configure_git_details("user.name", user)?;
     configure_git_details("user.email", email)?;
     Ok(())
 }
 
+/// Configure Git, including SSH setup and user details.
+///
+/// This function configures Git for GitHub access, including setting up SSH keys,
+/// configuring SSH agent, directory, and adding Git user details.
+///
+/// # Arguments
+///
+/// * `verbose` - A boolean indicating whether to print verbose output.
 pub fn configure_git(verbose: bool) {
     let user: &str = "jtfletch";
     let email: &str = "jobetfletcher@gmail.com";
 
     println!(
-        "\n{} --- Checking Github access... --- {}",
+        "\n{} --- Checking GitHub access... --- {}",
         color::Fg(color::Yellow),
         color::Fg(color::Reset)
     );
 
     if check_git_authentication() {
-        println!("Github is already configured.");
+        println!("GitHub is already configured.");
     } else {
         println!(
-            "{}Configuring Github{}",
+            "{}Configuring GitHub{}",
             color::Fg(color::Cyan),
             color::Fg(color::Reset)
         );
         match set_details(user, email) {
-            Ok(_) => println!("Git details applied successfully."),
-            Err(err) => eprintln!("Error configuring git: {}", err),
+            Ok(_) => {
+                println!("Git details applied successfully.");
+            }
+            Err(err) => eprintln!("Error configuring Git: {}", err),
         }
         configure_ssh(email, verbose);
 
