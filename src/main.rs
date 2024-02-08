@@ -1,12 +1,16 @@
-mod brew;
+mod brew {
+    pub mod brew;
+    pub mod packages;
+}
 mod config {
     pub mod git;
+    pub mod go;
 }
-mod packages;
 
 fn main() {
     let verbose = false;
-    brew::install_homebrew();
-    packages::packages();
+    brew::brew::install_homebrew();
+    brew::packages::packages();
+    config::go::configure_go();
     config::git::configure_git(verbose)
 }

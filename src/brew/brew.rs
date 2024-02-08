@@ -1,5 +1,6 @@
 use std::io::{self, Write};
 use std::process::{exit, Command};
+use termion::color;
 
 pub fn is_brew_installed() -> Option<String> {
     let output = Command::new("brew").arg("--version").output().ok()?;
@@ -49,6 +50,12 @@ fn install_homebrew_from_script() -> Result<(), std::io::Error> {
 }
 
 pub fn install_homebrew() {
+    println!(
+        "\n{}--- Homebrew Installation and Configuration ---{}",
+        color::Fg(color::Yellow),
+        color::Fg(color::Reset)
+    );
+
     if let Some(version) = is_brew_installed() {
         println!("{} is already installed.", version);
         if let Err(err) = update_homebrew() {

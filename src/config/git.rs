@@ -3,8 +3,18 @@ use std::fs;
 use std::fs::OpenOptions;
 use std::io::{self, Write};
 use std::process::{exit, Command, Stdio};
+use termion::color;
 
-fn check_git() -> bool {
+/// Run a command and return whether it was successful.
+fn run_command_success(command: &str, args: &[&str]) -> bool {
+    if let Ok(_) = Command::new(command).args(args).output() {
+        true
+    } else {
+        false
+    }
+}
+
+fn check_git_authentication() -> bool {
     let output = Command::new("ssh")
         .arg("-T")
         .arg("git@github.com")
@@ -24,31 +34,19 @@ fn check_git() -> bool {
     }
 }
 
+/// Configure Git details.
 fn configure_git_details(config: &str, value: &str) -> io::Result<()> {
-    let command_result = Command::new("git")
-        .arg("config")
-        .arg("--global")
-        .arg(config)
-        .arg(value)
-        .output();
-
-    if let Ok(output) = command_result {
-        if output.status.success() {
-            Ok(())
-        } else {
-            Err(io::Error::new(
-                io::ErrorKind::Other,
-                format!("Error setting git {}: {:?}", config, output.stderr),
-            ))
-        }
+    if run_command_success("git", &["config", "--global", config, value]) {
+        Ok(())
     } else {
         Err(io::Error::new(
             io::ErrorKind::Other,
-            "Failed to execute git config command",
+            format!("Error setting git {}", config),
         ))
     }
 }
 
+/// Open Github website for user to paste in SSH key, wait for return.
 fn open_github() {
     let path = "https://github.com/settings/keys";
 
@@ -207,17 +205,31 @@ pub fn configure_git(verbose: bool) {
     let user: &str = "jtfletch";
     let email: &str = "jobetfletcher@gmail.com";
 
-    if check_git() {
-        println!("Github access is already configured");
+    println!(
+        "\n{} --- Checking Github access... --- {}",
+        color::Fg(color::Red),
+        color::Fg(color::Reset)
+    );
+
+    if check_git_authentication() {
+        println!(
+            "{}Github is already configured{}",
+            color::Fg(color::Blue),
+            color::Fg(color::Reset)
+        );
     } else {
-        println!("Configuring Github access");
+        println!(
+            "{}Configuring Github{}",
+            color::Fg(color::Yellow),
+            color::Fg(color::Reset)
+        );
         match set_details(user, email) {
             Ok(_) => println!("Git details applied successfully."),
             Err(err) => eprintln!("Error configuring git: {}", err),
         }
         configure_ssh(email, verbose);
 
-        if check_git() {
+        if check_git_authentication() {
             println!("GitHub access configured successfully.");
         } else {
             eprintln!("Error configuring GitHub access.");

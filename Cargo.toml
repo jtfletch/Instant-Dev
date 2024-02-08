@@ -7,5 +7,7 @@ edition = "2021"
 
 [dependencies]
 dirs = "5.0.1"
+mockall = "0.12.1"
 open = "5.0.1"
+termion = "3.0.0"
 toml = "0.5.8"
