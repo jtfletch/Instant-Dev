@@ -8,9 +8,24 @@ pub fn packages() {
         color::Fg(color::Yellow),
         color::Fg(color::Reset)
     );
-    // Read the list of packages from the TOML file
+    
+    // Get the username using `echo $USER` command
+    let username_output = Command::new("sh")
+        .arg("-c")
+        .arg("echo $USER")
+        .output()
+        .expect("Failed to get username.");
+
+    let username = String::from_utf8_lossy(&username_output.stdout)
+        .trim()
+        .to_string();
+
+    println!("/Users/{}/.config/insta-dev/packages.toml", username);
+
     let toml_content =
-        fs::read_to_string("src/brew/packages.toml").expect("Failed to read packages.toml");
+        fs::read_to_string(format!("/Users/{}/.config/instant-dev/packages.toml", username))
+        .expect("Failed to read packages.toml");
+
     let toml: Value = toml::from_str(&toml_content).expect("Failed to parse TOML");
 
     let installed_packages = get_installed_packages();

@@ -9,7 +9,7 @@ mod config {
 
 fn main() {
     let verbose = false;
-    brew::brew::install_homebrew();
+    let _ = brew::brew::install_homebrew();
     brew::packages::packages();
     config::go::configure_go();
     config::git::configure_git(verbose)

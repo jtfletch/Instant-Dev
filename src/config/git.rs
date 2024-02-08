@@ -207,20 +207,16 @@ pub fn configure_git(verbose: bool) {
 
     println!(
         "\n{} --- Checking Github access... --- {}",
-        color::Fg(color::Red),
+        color::Fg(color::Yellow),
         color::Fg(color::Reset)
     );
 
     if check_git_authentication() {
-        println!(
-            "{}Github is already configured{}",
-            color::Fg(color::Blue),
-            color::Fg(color::Reset)
-        );
+        println!("Github is already configured.");
     } else {
         println!(
             "{}Configuring Github{}",
-            color::Fg(color::Yellow),
+            color::Fg(color::Cyan),
             color::Fg(color::Reset)
         );
         match set_details(user, email) {
